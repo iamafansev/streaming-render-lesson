@@ -47,8 +47,6 @@ export const createServer = async () => {
                 },
             });
 
-            console.log(html);
-
             response.status(StatusCodes.OK).send(html).end();
         } catch (e) {
         vite.ssrFixStacktrace(e);
