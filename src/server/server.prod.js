@@ -32,16 +32,17 @@ export const createServer = async () => {
 
   app.use('*', async (request, response) => {
     try {
-        const html = await render({
-            template: {
-            full: minifiedTemplate,
-                beginTemplate,
-                endTemplate,
-            },
-        });
-        console.log(html);
+      const url = request.originalUrl;
+      const html = await render({
+        url,
+        template: {
+          full: minifiedTemplate,
+              beginTemplate,
+              endTemplate,
+          },
+      });
 
-        response.status(StatusCodes.OK).send(html).end();
+      response.status(StatusCodes.OK).send(html).end();
     } catch (e) {
         response
             .status(StatusCodes.INTERNAL_SERVER_ERROR)

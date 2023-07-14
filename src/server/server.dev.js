@@ -40,6 +40,7 @@ export const createServer = async () => {
             const { render } = (await vite.ssrLoadModule('src/server/render'));
 
             const html = await render({
+                url,
                 template: {
                     full: transformedTemplate,
                     beginTemplate,
