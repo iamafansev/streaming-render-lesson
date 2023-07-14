@@ -1,17 +1,42 @@
-import {renderToString} from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom/server';
+import { HelmetProvider } from 'react-helmet-async';
 
-import { collectTemplate } from './templateUtils';
-import { App } from '../../client/App';
+import { App } from '../../client/app';
+import {
+  renderToStreamWhenShellReady,
+  renderToStreamWhenAllReady,
+} from './renderToStream';
 
-export const render = async ({url, template}) => {
-    const content = renderToString(
+export const render = async ({
+  url,
+  withPrepass,
+  template,
+  response,
+  onError = console.error,
+}) => {
+  const helmetContext = {
+    helmet: {},
+  };
+
+  const jsx = (
+    <HelmetProvider context={helmetContext}>
         <StaticRouter location={url}>
             <App />
         </StaticRouter>
-    );
+    </HelmetProvider>
+  );
 
-    const html = collectTemplate(template.full, {content});
+  const renderToStreamParams = {
+    template,
+    response,
+    jsx,
+    onError,
+    helmetServerState: helmetContext,
+  };
 
-    return html;
+  if (withPrepass) {
+    renderToStreamWhenAllReady(renderToStreamParams);
+  } else {
+    renderToStreamWhenShellReady(renderToStreamParams);
+  }
 };

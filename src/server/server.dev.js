@@ -28,30 +28,31 @@ export const createServer = async () => {
 
     app.use('*', async (request, response) => {
         try {
-            const url = request.originalUrl;
-
-            const transformedTemplate = await vite.transformIndexHtml(
-                url,
-                minifiedTemplate
-            );
-
-            const [beginTemplate, endTemplate] = splitTemplate(transformedTemplate);
-
-            const { render } = (await vite.ssrLoadModule('src/server/render'));
-
-            const html = await render({
-                url,
-                template: {
-                    full: transformedTemplate,
-                    beginTemplate,
-                    endTemplate,
-                },
-            });
-
-            response.status(StatusCodes.OK).send(html).end();
+          const url = request.originalUrl;
+          const { render } = (await vite.ssrLoadModule(
+            'src/server/render'
+          ));
+    
+          const transformedTemplate = await vite.transformIndexHtml(
+            url,
+            minifiedTemplate
+          );
+    
+          const [beginTemplate, endTemplate] = splitTemplate(transformedTemplate);
+    
+          render({
+            url,
+            response,
+            template: {
+              full: transformedTemplate,
+              beginTemplate,
+              endTemplate,
+            },
+            onError: vite.ssrFixStacktrace,
+          });
         } catch (e) {
-        vite.ssrFixStacktrace(e);
-        response
+          vite.ssrFixStacktrace(e);
+          response
             .status(StatusCodes.INTERNAL_SERVER_ERROR)
             .end((e).stack);
         }

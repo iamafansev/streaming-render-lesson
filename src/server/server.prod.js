@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { minify } from 'html-minifier';
+import isbot from 'isbot';
 
 import { render } from './render';
 import { splitTemplate } from './render/templateUtils';
@@ -33,20 +34,22 @@ export const createServer = async () => {
   app.use('*', async (request, response) => {
     try {
       const url = request.originalUrl;
-      const html = await render({
+      const withPrepass = isbot(request.get('user-agent'));
+
+      render({
         url,
+        response,
+        withPrepass,
         template: {
           full: minifiedTemplate,
-              beginTemplate,
-              endTemplate,
-          },
+          beginTemplate,
+          endTemplate,
+        },
       });
-
-      response.status(StatusCodes.OK).send(html).end();
     } catch (e) {
         response
-            .status(StatusCodes.INTERNAL_SERVER_ERROR)
-            .end((e).stack);
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .end((e).stack);
     }
   });
 
